@@ -1,0 +1,10 @@
+node_modules/
+.next/
+pipeline/data/
+__pycache__/
+.zawg-drive-tokens.json
+*.env
+*.env.local
+*token*
+*secret*
+*.session

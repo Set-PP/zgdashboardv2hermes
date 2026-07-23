@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+pipeline/data
+pipeline/__pycache__
+*.md
+docs
+docker-compose.yml
+Dockerfile
+.dockerignore

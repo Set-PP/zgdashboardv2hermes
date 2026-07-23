@@ -1,0 +1,23 @@
+services:
+  api:
+    build: ./pipeline
+    container_name: zawg-api
+    restart: always
+    volumes:
+      - ./pipeline/data:/app/data        # zawg.db + photos — seeded once, kept fresh by data push
+    expose:
+      - "8600"                            # internal only — reached via web's /pipe proxy
+
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_PIPELINE_API: /pipe   # same-origin proxy → api container (no CORS, no open 8600)
+    container_name: zawg-web
+    restart: always
+    environment:
+      PIPELINE_INTERNAL: http://api:8600
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
