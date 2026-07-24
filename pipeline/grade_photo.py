@@ -16,7 +16,13 @@ Scoring guide:
 - 8-10: sharp, well-lit, shows construction progress clearly, client-worthy
 - 5-7: acceptable but ordinary
 - 1-4: blurry, dark, irrelevant, meme/screenshot/document/selfie
-keep = true only if score >= 7 AND site_related."""
+
+AUTO-FILTER RULES — keep = false (regardless of score) if image contains:
+• DEMOLITION/RENATION: bricks/walls being broken down, rubble, wrecking debris, demolition crews in action
+• CONSTRUCTION JUNK: piles of loose bricks with no structure, scattered construction waste, dirty work surfaces
+• BAD CONTENT: memes, text documents, screenshots, selfies, non-site photos, logos/marketing materials
+
+keep = true ONLY if score >= 7 AND site_related AND NOT (demolition OR renovation debris OR construction junk)."""
 
 PROMPT_PORTFOLIO = """You are a curator for a premium architecture portfolio website.
 Grade this image. Reply ONLY with valid JSON, no other text:
@@ -27,7 +33,13 @@ Scoring guide:
 - 5-7: decent but ordinary
 - 1-4: blurry, dark, meme, screenshot, document, selfie, text-heavy poster, infographic, collage
 site_related = true if it shows a building/structure/interior/render (not text poster/meme/logo).
-keep = true only if score >= 7 AND site_related."""
+
+AUTO-FILTER RULES — keep = false (regardless of score) if image contains:
+• DEMOLITION/RENOVATION DEBRIS: bricks/walls being broken down, rubble, wrecking, demolition crews, wall demolition, structural repair with visible wreckage, torn-down walls, piles of broken bricks
+• CONSTRUCTION JUNK: scattered construction waste, unorganized messy work sites, dirty surfaces with no visible structure
+• BAD CONTENT: memes, text documents, screenshots, selfies, non-site photos, logos/marketing materials
+
+keep = true ONLY if score >= 7 AND site_related AND NOT (demolition OR renovation debris OR construction junk OR bad content)."""
 
 def grade(path: str, mode: str = "site") -> dict:
     with open(path, "rb") as f:

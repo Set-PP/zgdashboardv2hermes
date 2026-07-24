@@ -14,6 +14,17 @@ def rel(path: str) -> str:
     """disk path -> /media/... URL"""
     return "/media/" + path.split(os.sep + "photos" + os.sep, 1)[-1].replace(os.sep, "/")
 
+def img_url(path: str, site_id: str = None, msg_id: int = None) -> str:
+    """Return GDrive URL if available, else local /media/ URL."""
+    if site_id and msg_id:
+        con = connect()
+        row = con.execute(
+            "SELECT drive_link FROM photos WHERE site_id=? AND msg_id=? AND drive_link IS NOT NULL",
+            (site_id, msg_id)).fetchone()
+        if row and row['drive_link']:
+            return row['drive_link']
+    return rel(path) if path else None
+
 @app.get("/api/health")
 def health():
     con = connect()
@@ -161,7 +172,7 @@ def portfolio():
             continue
         # get best graded photo for this site (may be None)
         best = con.execute(
-            "SELECT path, score FROM photos WHERE site_id=? AND keep=1 ORDER BY score DESC LIMIT 1",
+            "SELECT path, score, msg_id, drive_link FROM photos WHERE site_id=? AND keep=1 ORDER BY score DESC LIMIT 1",
             (sid,)
         ).fetchone()
         ops_stage = con.execute(
@@ -173,7 +184,7 @@ def portfolio():
             ongoing.append({
                 "title": s['name'], "subtitle": s['code'] or s['title'],
                 "score": best['score'],
-                "img": rel(best['path']),
+                "img": best['drive_link'] or rel(best['path']),
                 "slug": sid,
             })
         else:
