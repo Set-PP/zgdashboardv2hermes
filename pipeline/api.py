@@ -116,21 +116,31 @@ def feed():
 
 
 def _msg_key(path: str):
-    m = re.search(r"design_(\d{8})_(\d+)\.jpg", path.replace("\\", "/"))
+    p = path.replace("\\", "/")
+    # Real renders: P05_26_(POL-03)_Scene1.png → key=P05-POL-03
+    m = re.search(r"([DP]\d+)_\d+_\(([^)]+)\)", p)
+    if m:
+        return (f"{m.group(1)}-{m.group(2).replace('_','-')}", 0)
+    # Simple: P05_26 → key=P05
+    m = re.search(r"[DP](\d+)_(\d+)", p)
+    if m:
+        return (f"{'D' if 'D' in m.group(0)[0] else 'P'}{m.group(1)}", int(m.group(2)))
+    # Facebook/Telegram fallback
+    m = re.search(r"design_fb_(\d{8})_(\d+)", p)
+    if m:
+        return (m.group(1), int(m.group(2)))
+    m = re.search(r"design_(\d{8})_(\d+)", p)
     return (m.group(1), int(m.group(2))) if m else ("", 0)
 
 
-def _diverse_design(rows, n: int = 6):
-    """One card per project dump: cluster consecutive message-ids, keep the best of each."""
+def _diverse_design(rows, n: int = 12):
+    """One card per project: cluster by D-number, keep the best of each."""
     items = sorted(rows, key=lambda r: _msg_key(r["path"]))
-    clusters: list[list[dict]] = []
+    clusters: dict[str, list[dict]] = {}
     for r in items:
-        _, mid = _msg_key(r["path"])
-        if clusters and mid - _msg_key(clusters[-1][-1]["path"])[1] <= 12:
-            clusters[-1].append(r)
-        else:
-            clusters.append([r])
-    picks = [max(c, key=lambda r: r["score"] or 0) for c in clusters]
+        key = _msg_key(r["path"])[0]  # date string or D-number
+        clusters.setdefault(key, []).append(r)
+    picks = [max(c, key=lambda r: r["score"] or 0) for c in clusters.values()]
     picks.sort(key=lambda r: -(r["score"] or 0))
     return picks[:n]
 
@@ -139,7 +149,27 @@ _MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
 
 
 def _design_title(path: str) -> str:
-    d, _ = _msg_key(path)
+    p = path.replace("\\", "/")
+    fname = p.split("/")[-1]
+    # Real render: P05_26_(POL-03)_Scene1.png
+    m = re.search(r"P(\d+)_\d+_\(([^)]+)\)", p)
+    if m:
+        pnum = m.group(1)
+        name = m.group(2).replace("_", " ").strip()
+        return f"Project P{pnum} — {name}"
+    # D-code: D01_26_(School)_HALL.jpg
+    m = re.search(r"D(\d+)_\d+_\(([^)]+)\)", p)
+    if m:
+        dnum = m.group(1)
+        name = m.group(2).replace("_", " ").strip()
+        return f"Design D{dnum} — {name}"
+    # Fallback: any Dxx or Pxx reference
+    m = re.search(r"[DP](\d+)", fname)
+    if m:
+        prefix = "Project" if 'P' in fname else "Design"
+        return f"{prefix} {m.group(0)} — 2026"
+    # Facebook / Telegram
+    d, _ = _msg_key(p)
     if len(d) == 8:
         return f"Design Concept · {_MONTHS[int(d[4:6]) - 1]} {d[:4]}"
     return "Design Concept"

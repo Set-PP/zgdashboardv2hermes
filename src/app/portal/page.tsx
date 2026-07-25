@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, Building2, Camera, FileText, KeyRound, Loader2, MapPin, ShieldCheck } from "lucide-react";
 import { portalAuth, type PortalData } from "@/lib/api";
 import { opsFor } from "@/lib/data";
+import PasswordGate from "@/components/PasswordGate";
 
 /* ---------------- Access gate ---------------- */
 
@@ -179,8 +180,10 @@ function Portal({ d }: { d: PortalData }) {
 export default function PortalPage() {
   const [data, setData] = useState<PortalData | null>(null);
   return (
-    <AnimatePresence mode="wait">
-      {data ? <Portal key="p" d={data} /> : <Gate key="g" onAuth={setData} />}
-    </AnimatePresence>
+    <PasswordGate password="ZGClient2026" storageKey="portal-auth" title="Client Portal" subtitle="Zaw G Design & Construction">
+      <AnimatePresence mode="wait">
+        {data ? <Portal key="p" d={data} /> : <Gate key="g" onAuth={setData} />}
+      </AnimatePresence>
+    </PasswordGate>
   );
 }

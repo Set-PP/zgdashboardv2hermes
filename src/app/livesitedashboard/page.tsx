@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { opsFor, SiteOps, OPS_DEFAULT } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import PasswordGate from "@/components/PasswordGate";
 
 const active = (s: ApiSite) =>
   s.last_photo ? Date.now() - new Date(s.last_photo).getTime() < 3 * 864e5 : false;
@@ -345,7 +346,8 @@ export default function LiveSiteDashboard() {
   const site = sites?.find((s) => s.id === activeId) ?? null;
 
   return (
-    <div className="min-h-screen bg-ink text-bone">
+    <PasswordGate password="ZG26DASHBOARD" storageKey="livesite-auth" title="Live Site Dashboard" subtitle="Zaw G Design & Construction">
+      <div className="min-h-screen bg-ink text-bone">
       <Lightbox src={zoom} onClose={() => setZoom(null)} />
 
       <header className="sticky top-0 z-40 border-b border-bone/10 bg-ink/80 backdrop-blur-md">
@@ -441,5 +443,6 @@ export default function LiveSiteDashboard() {
         )}
       </main>
     </div>
+    </PasswordGate>
   );
 }
