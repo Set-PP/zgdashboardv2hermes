@@ -11,8 +11,12 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 app.mount("/media", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "data", "photos")), name="media")
 
 def rel(path: str) -> str:
-    """disk path -> /media/... URL"""
-    return "/media/" + path.split(os.sep + "photos" + os.sep, 1)[-1].replace(os.sep, "/")
+    """disk path -> /media/... URL (handles both / and \\ separators)"""
+    p = path.replace("\\", "/")
+    m = re.search(r"/photos/(.+)$", p)
+    if m:
+        return "/media/" + m.group(1)
+    return "/media/" + p
 
 def img_url(path: str, site_id: str = None, msg_id: int = None) -> str:
     """Return GDrive URL if available, else local /media/ URL."""
@@ -211,10 +215,13 @@ def portfolio():
         ).fetchone()
         
         if best:
+            # Prefer local /media/ for website display (faster, no auth issues)
+            # GDrive is backup/sync only
+            local_url = rel(best['path']) if best['path'] else None
             ongoing.append({
                 "title": s['name'], "subtitle": s['code'] or s['title'],
                 "score": best['score'],
-                "img": best['drive_link'] or rel(best['path']),
+                "img": local_url or best['drive_link'],
                 "slug": sid,
             })
         else:

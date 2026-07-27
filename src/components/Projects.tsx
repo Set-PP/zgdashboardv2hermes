@@ -101,7 +101,7 @@ function cardsFromPortfolio(d: Portfolio) {
   d.design.forEach((x, i) => out.push({
     id: `D${String(i + 1).padStart(2, "0")}`, title: x.title || "Design Concept",
     location: x.subtitle || "", year: "2025", category: "Design",
-    image: media(x.img), score: x.score,
+    image: x.img ? media(x.img) : "", score: x.score ?? undefined,
   }));
 
   // Completed builds
@@ -109,10 +109,10 @@ function cardsFromPortfolio(d: Portfolio) {
     id: `C${String(i + 1).padStart(2, "0")}`, title: x.title || "Completed Build",
     location: x.subtitle ? (x.subtitle.slice(0, 4) || "Zaw G Build") : "Zaw G Build",
     year: x.subtitle ? (x.subtitle.slice(0, 4) || "2024") : "2024",
-    category: "Completed", image: media(x.img), score: x.score,
+    category: "Completed", image: x.img ? media(x.img) : "", score: x.score ?? undefined,
   }));
 
-  // Ongoing sites — now includes ALL 22 active sites from Telegram collector
+  // Ongoing sites — ALL 22 active sites from Telegram collector
   d.ongoing.forEach((x, i) => {
     const slug = x.slug || "";
     const ops = slug ? opsFor(slug) : undefined;
@@ -134,16 +134,12 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[Projects] useEffect firing, calling fetchPortfolio...');
     fetchPortfolio()
       .then((d) => {
-        console.log('[Projects] fetchPortfolio SUCCESS:', d.design?.length, d.finished?.length, d.ongoing?.length);
-        const cards = cardsFromPortfolio(d);
-        console.log('[Projects] cardsFromPortfolio returned:', cards.length, 'cards');
-        setCards(cards);
+        setCards(cardsFromPortfolio(d));
         setLoading(false);
       })
-      .catch((e) => { console.error('Portfolio fetch failed:', e); setLoading(false); setCards([]); });
+      .catch(() => { setLoading(false); setCards([]); });
   }, []);
 
   const shown = cards.filter((p) => filter === "All" || p.category === filter);
@@ -180,13 +176,13 @@ export default function Projects() {
 
       <motion.div layout className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
-          {loading ? null : shown.map((p, i) => (
-            <Card key={p.id + p.title} p={p} i={i} />
-          ))}
-          {/* placeholder skeletons during load */}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.1 }} className="rounded-2xl bg-panel aspect-[4/3] animate-pulse" />
-          ))}
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <motion.div key={`skel-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.08 }} className="rounded-2xl bg-panel aspect-[4/3] animate-pulse" />
+              ))
+            : shown.map((p, i) => (
+                <Card key={p.id + p.title} p={p} i={i} />
+              ))}
         </AnimatePresence>
       </motion.div>
     </section>

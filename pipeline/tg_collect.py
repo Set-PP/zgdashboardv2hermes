@@ -6,9 +6,9 @@ from telethon import TelegramClient
 
 API_ID = 30450730
 API_HASH = "dc6b66a4c9cff096f0cb2feb58bf0f4a"
-SESSION = r"C:\Users\user\Downloads\zawg_telethon_session.session"
+SESSION = r"C:\Users\user\Desktop\hermes data\zawg-portfolio\pipeline\zawg_telethon_v2.session"
 OUT = os.path.join(os.path.dirname(__file__), "data")
-DAYS = 3
+DAYS = 90  # backfill 3 months of photos
 
 async def main():
     os.makedirs(OUT, exist_ok=True)

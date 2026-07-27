@@ -44,8 +44,8 @@ async function get<T>(path: string): Promise<T> {
 export type PortfolioItem = {
   title: string;
   subtitle: string;
-  score: number;
-  img: string;
+  score: number | null;
+  img: string | null;
   slug?: string;
 };
 export type Portfolio = { design: PortfolioItem[]; finished: PortfolioItem[]; ongoing: PortfolioItem[] };
@@ -66,7 +66,10 @@ export const fetchDays = (id: string, all = false) =>
   get<SiteDay[]>(`/api/sites/${id}/days${all ? "?only_keep=false" : ""}`);
 export const fetchReports = (id: string, limit = 30) =>
   get<ApiReport[]>(`/api/sites/${id}/reports?limit=${limit}`);
-export const media = (url: string) => `${API}${url}`;
+export const media = (url: string | null | undefined): string => {
+  if (!url) return "";
+  return url.startsWith("http") ? url : `${API}${url}`;
+};
 
 // "2026-07-18T14:25:00+00:00" → "Jul 18 · 2:25 PM"
 export function fmtWhen(iso: string) {
